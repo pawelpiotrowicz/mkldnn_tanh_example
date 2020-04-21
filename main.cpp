@@ -15,10 +15,18 @@ void eltwise_example(dnnl::engine::kind engine_kind) {
     // Create dnnl::stream.
     dnnl::stream engine_stream(engine);
     // Tensor dimensions.
+   /*
     const memory::dim N = 3, // batch size
             IC = 3, // channels
             IH = 227, // tensor height
             IW = 227; // tensor width
+    */
+ const memory::dim N = 2, // batch size
+            IC = 2, // channels
+            IH = 2, // tensor height
+            IW = 2; // tensor width
+   
+
     // Source (src) and destination (dst) tensors dimensions.
     memory::dims src_dims = {N, IC, IH, IW};
     memory::dims dst_dims = {N, IC, IH, IW};
@@ -47,8 +55,13 @@ void eltwise_example(dnnl::engine::kind engine_kind) {
     // Write data to memory object's handle.
     write_to_dnnl_memory(src_data.data(), src_mem);
     // Create operation descriptor.
+   /*
     auto eltwise_d = eltwise_forward::desc(prop_kind::forward_training,
             algorithm::eltwise_relu, src_md, 0.f, 0.f);
+   */
+    auto eltwise_d = eltwise_forward::desc(prop_kind::forward_inference,
+            algorithm::eltwise_tanh, src_md, 0.f, 0.f);
+   
     // Create primitive descriptor.
     auto eltwise_pd = eltwise_forward::primitive_desc(eltwise_d, engine);
     // Create the primitive.
@@ -63,8 +76,40 @@ void eltwise_example(dnnl::engine::kind engine_kind) {
     engine_stream.wait();
     // Read data from memory object's handle.
     read_from_dnnl_memory(dst_data.data(), dst_mem);
+
+    for(size_t i=0;i<dst_data.size();++i)
+    {
+         auto f1 = dst_data[i];
+         auto f2 = std::tanh(src_data[i]);
+       //  std::cout << f1 << " == " << f2  << std::endl;
+        //  if(f1!=f2)
+        //  {
+        //      printf (" %.20f   %.20f \n", f1 , f2);
+        //      std::cout << "ERROR diff found " << f1 << " " << f2 << std::endl;
+        //     // break;
+        //  } else {
+        //       std::cout << "OK :)" << std::endl;
+        //  }
+         printf("%.20f\n",f1);
+
+        
+    }
+
+    
+     
+
+
 }
+
+
 int main(int argc, char **argv) {
-    return handle_example_errors(
-            eltwise_example, parse_engine_kind(argc, argv));
+   auto k =  parse_engine_kind(argc, argv);
+   eltwise_example(k);
+   //  return handle_example_errors(
+     //       eltwise_example, parse_engine_kind(argc, argv));
+   
+   //  eltwise_example(eltwise_example);
+
+ //  return 
+
 }
